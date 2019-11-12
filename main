@@ -1,55 +1,45 @@
 /*
-  Analog input, analog output, serial output
+  This program makes a easy to control PWM 970Hz signal.
+  It needs a Pontentiometer, LCD with I2C module(PCF8574) and a LED with 1kR.
+  
+  created 12 Nov. 2019
+  by Marcos Vinicius
+  
+  Sduino Library made by
+  tehbaht - https://tenbaht.github.io/sduino/
+  All credits to him.
 
-  Reads an analog input pin, maps the result to a range from 0 to 255 and uses
-  the result to set the pulse width modulation (PWM) of an output pin.
-  Also prints the results to the Serial Monitor.
-
-  The circuit:
-  - potentiometer connected to analog pin 0.
-    Center pin of the potentiometer goes to the analog pin.
-    side pins of the potentiometer go to +3.3V and ground
-  - LED connected from digital pin 9 to ground
-
-  created 29 Dec. 2008
-  modified 9 Apr 2012
-  by Tom Igoe
-  modified 28 Feb 2017 for use with sduino
-  by Michael Mayer
-
-  This example code is in the public domain.
-
-  http://www.arduino.cc/en/Tutorial/AnalogInOutSerial
 */
+//necessary for use of LCD, change if needed
 #include <I2C.h>
 #include <LiquidCrystal_I2C.h>
 #define LCD_ADDR 0x27
 LiquidCrystal_I2C(lcd, 0x27, 16, 2);
 
-// These constants won't change. They're used to give names to the pins used:
-const int analogInPin = A0;  // Analog input pin that the potentiometer is attached to
-const int analogOutPin = 13; // Analog output pin that the LED is attached to
-//variaveis de uso global
-int sensorValue = 0;        // value read from the pot
-int outputValue = 0;        // value output to the PWM (analog out)
+// Pins association 
+const int Pot_Read_Pin = A0;  // Analog input for Potentiometer
+const int Pwm_Out_Pin = 13; // PWM output for LED
+//Global Variables
+int Pot_Read = 0;        
+int Pwm_Out = 0;        
 int line1_duty = 0;
 int line2_adc = 0;
 
-//função de media
-int media_adc(int contador,int analog){
-  int armazenamento[128]; //array para buffer dos dados
-  int long calculado = 0; //variavel  para salvar soma 
+//Average Function
+int average_adc(int avg_number,int analog_pin){
+  int buffer_array[128]; //Buffer data array
+  int long calculated = 0; //Average variable 
   int i=0;   
-  for (i = 0; i<contador; i++)   //loop de leitura
+  for (i = 0; i<avg_number; i++)   //Reading Loop
     {      
-    armazenamento[i] = analogRead(analog); //salva no array
-    calculado += armazenamento[i]; //soma o array ao valor total
+    buffer_array[i] = analogRead(analog_pin); //Save to array
+    calculated += buffer_array[i]; //Sums to array
     delay(2);
     }
-  calculado = calculado/contador; //calcula a media
-  return (calculado); //retorna o valor medio
+  calculated = calculated/avg_number; //Average calc
+  return (calculated); //return Average value calculated
 }
-//função de limpeza do LCD
+//LCD Clear Function
 void update_lcd(int x,int y)
 {
   lcd_setCursor(x, y);
@@ -57,55 +47,50 @@ void update_lcd(int x,int y)
 }
 //SETUP
 void setup() {  
-  // initialize the LCD
+  //Initialize the LCD
   lcd_begin();
-  // Turn on the blacklight and print a message.
   lcd_backlight();
-  lcd_clear();  
+  lcd_clear();
+  //Fixed messages
   lcd_setCursor(4, 1);
   lcd_print_s("% Duty+");
   lcd_setCursor(4, 0); 
-  lcd_print_s(" Media ADC");
+  lcd_print_s(" AVG ADC");
 }
 //LOOP
 void loop() {    
   int duty_cycle = 0;
-  // read the analog in value:
-  sensorValue = media_adc(128,analogInPin); //lê adc e retorna sua media
-  // map it to the range of the analog out:
-  outputValue = map(sensorValue, 0, 1023, 0, 255); //transformar range 1023 para 255
-  // change the analog out value:
-  if(sensorValue <8) //Proteção no ciclo menor que 1%
+  Pot_Read = average_adc(128,Pot_Read_Pin); //Reads adc and returns its average
+  Pwm_Out = map(Pot_Read, 0, 1023, 0, 255); //Range transform from 1023 to 255
+  if(Pot_Read <8) //Protection for <1% cicle 
   {
-    outputValue = 1;  
+    Pwm_Out = 1;  //Send PWM with close to 1% Duty Cycle
   }
-  if(sensorValue>1020) //Proteção no ciclo maior que 99%
+  if(Pot_Read>1020) //Protection for >99% cicle
   {
-    outputValue = 254;
+    Pwm_Out = 254; //Send PWM with close to 99% Duty Cycle
   }  
-  analogWrite(analogOutPin, outputValue); //gerador PWM  
-  duty_cycle = (outputValue*100)/255; //exibe porcentagem duty+  
-  if (duty_cycle<10)  //limpador de lcd do DUTY
+  analogWrite(Pwm_Out_Pin, Pwm_Out); //PWM Generator
+  duty_cycle = (Pwm_Out*100)/255; //Show percentage of duty+  
+  if (duty_cycle<10)  //lcd DUTY Clearing
     { 
     update_lcd(1,1);
     }    
   lcd_setCursor(0, 1);
-  lcd_print_u(duty_cycle); //escreve valor DUTY    
-  if (sensorValue<1000)  //limpador de lcd do ADC
+  lcd_print_u(duty_cycle); //Prints DUTY Reads
+  if (Pot_Read<1000)  //lcd ADC Clearing
     { 
       update_lcd(3,0);
-      if (sensorValue<100)
+      if (Pot_Read<100)
         {
           update_lcd(2,0); 
-          if (sensorValue<10)
+          if (Pot_Read<10)
             {
              update_lcd(1,0); 
             } 
         }      
     }    
   lcd_setCursor(0, 0);
-  lcd_print_u(sensorValue); //escreve valor ADC  
-  // wait 2 milliseconds before the next loop for the analog-to-digital
-  // converter to settle after the last reading:  
-  delay(10);      //opcional
+  lcd_print_u(Pot_Read); //Prints ADC Reads
+  delay(10);      //optional
 }
