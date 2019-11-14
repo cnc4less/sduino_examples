@@ -1,4 +1,4 @@
-// Code created by:
+/* Code created by:
     Marcos Vinicius
     14 Nov. 2019
     For use with any ADC, implementing a average and noise filter.
@@ -7,7 +7,7 @@
    from the creator:
     Tehbaht - https://github.com/tenbaht/sduino
     Lincesed under commom use, dont change this line of the code and you are free to use it.
-//
+*/
 
 //Average Function
 int average_adc(int avg_number,int analog_pin){
