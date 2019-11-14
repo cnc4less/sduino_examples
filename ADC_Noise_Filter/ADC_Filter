@@ -1,0 +1,62 @@
+// Code created by:
+    Marcos Vinicius
+    14 Nov. 2019
+    For use with any ADC, implementing a average and noise filter.
+    Please notice the need to change the ADC configurations for each MCU.
+    Designed to be used with SDUINO:
+   from the creator:
+    Tehbaht - https://github.com/tenbaht/sduino
+    Lincesed under commom use, dont change this line of the code and you are free to use it.
+//
+
+//Average Function
+int average_adc(int avg_number,int analog_pin){
+int size = avg_number;
+int buffer_array[size]; //Buffer data array
+int long calculated = 0; //Average variable 
+int i=0; 
+int index_old=0;
+int timeout=0;
+for (i = 0; i<avg_number; i++)   //Reading Loop
+    {
+//Actual index_old check
+        if (index_old == 0)
+            {
+            index_old = i; //make index_old equal to i on first read
+            }
+        if (index_old >0)
+            {
+            index_old = i--; //decrease i to get index_old
+            }
+        delay(2);
+        buffer_array[i] = analogRead(analog_pin); //Read & save to array
+//Noise filtering
+//change the number next to index_old to make more or less sensitive, beware of the noise enviroment of the ADC PIN
+        if (buffer_array[i] > buffer_array[index_old]+5 || buffer_array[i] < buffer_array[index_old]-5)
+            {
+            i--; //noise discard
+            timeout++; //timeout increase
+            }
+        else
+            {
+            calculated += buffer_array[i]; //Sums to array
+            timeout = 0;
+            }
+        if (timeout == 32) //timeout treatment, quit noise infinite loop
+            {
+            i = avg_number; //loop treatment for early quit
+            }
+    }
+//timeout check
+    if (timeout == 32) //calculated treatment for timeout
+          {
+          calculated = 0;
+          timeout = 0;
+          }
+    else
+          {
+          calculated = calculated/avg_number; //Average calc
+          }
+//return values
+return (calculated); //return Average value calculated
+}
