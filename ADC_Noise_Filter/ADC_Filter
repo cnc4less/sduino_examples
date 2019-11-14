@@ -9,8 +9,12 @@
     Lincesed under commom use, dont change this line of the code and you are free to use it.
 */
 
+//Analog Pin Definition
+const int analog_pin = A0;
+
 //Average Function
 int average_adc(int analog_pin){
+
 int buffer_array[128]; //Buffer data array, 128x , change if needed
 int long calculated = 0; //Average variable 
 int i=0; 
@@ -58,4 +62,15 @@ for (i = 0; i<128; i++)   //Reading Loop
           }
 //return values
 return (calculated); //return Average value calculated
+}
+//main code below
+void setup() {
+  // put your setup code here, to run once:
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+int adc_filtered = average_adc(analog_pin); //read the specified analog pin, change if needed
+ //use adc_filtered on serial or lcd to display it
 }
