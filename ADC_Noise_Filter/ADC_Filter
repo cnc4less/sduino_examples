@@ -10,9 +10,8 @@
 */
 
 //Average Function
-int average_adc(int avg_number,int analog_pin){
-int size = avg_number;
-int buffer_array[size]; //Buffer data array
+int average_adc(int analog_pin){
+int buffer_array[128]; //Buffer data array, 128x , change if needed
 int long calculated = 0; //Average variable 
 int i=0; 
 int index_old=0;
