@@ -16,7 +16,7 @@ int long calculated = 0; //Average variable
 int i=0; 
 int index_old=0;
 int timeout=0;
-for (i = 0; i<avg_number; i++)   //Reading Loop
+for (i = 0; i<128; i++)   //Reading Loop
     {
 //Actual index_old check
         if (index_old == 0)
@@ -43,7 +43,7 @@ for (i = 0; i<avg_number; i++)   //Reading Loop
             }
         if (timeout == 32) //timeout treatment, quit noise infinite loop
             {
-            i = avg_number; //loop treatment for early quit
+            i = 128; //loop treatment for early quit
             }
     }
 //timeout check
@@ -54,7 +54,7 @@ for (i = 0; i<avg_number; i++)   //Reading Loop
           }
     else
           {
-          calculated = calculated/avg_number; //Average calc
+          calculated = calculated/128; //Average calc
           }
 //return values
 return (calculated); //return Average value calculated
